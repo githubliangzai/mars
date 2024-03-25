@@ -29,6 +29,7 @@
 #endif
 
 #include <stdio.h>
+#include <cstdio>
 
 #include "mars/xlog/appender.h"
 
@@ -377,6 +378,7 @@ void XloggerAppender::Open(const XLogConfig& _config) {
     ScopedLock lock(mutex_log_file_);
     log_close_ = false;
     SetMode(config_.mode_);
+    SetFileNameMode(config_.namemode_);
     lock.unlock();
 
     char mark_info[512] = {0};
@@ -433,7 +435,11 @@ std::string XloggerAppender::__MakeLogFileNamePrefix(const timeval& _tv, const c
     tm tcur = *localtime((const time_t*)&sec);
 
     char temp[64] = {0};
-    snprintf(temp, 64, "_%d%02d%02d", 1900 + tcur.tm_year, 1 + tcur.tm_mon, tcur.tm_mday);
+    if (file_name_mode == kFileNameModeDay) {
+        snprintf(temp, 64, "_%d%02d%02d_day", 1900 + tcur.tm_year, 1 + tcur.tm_mon, tcur.tm_mday);
+    } else {
+        snprintf(temp, 64, "_%d%02d%02d_hour%02d", 1900 + tcur.tm_year, 1 + tcur.tm_mon, tcur.tm_mday, tcur.tm_hour);
+    }
 
     std::string filenameprefix = _prefix;
     filenameprefix += temp;
@@ -487,8 +493,21 @@ static bool __string_compare_greater(const std::string& s1, const std::string& s
 long XloggerAppender::__GetNextFileIndex(const std::string& _fileprefix, const std::string& _fileext) {
     std::vector<std::string> filename_vec;
     __GetFileNamesByPrefix(config_.logdir_, _fileprefix, _fileext, filename_vec);
+
+    char logInfo1[1024] = {0};
+    snprintf(logInfo1, sizeof(logInfo1), "lzllog __GetNextFileIndex, filename_vec.length:%zu\n", filename_vec.size());
+    XLoggerInfo info = XLOGGER_INFO_INITIALIZER;
+    info.level = kLevelInfo;
+    ConsoleLog(&info, logInfo1);
+
     if (!config_.cachedir_.empty()) {
         __GetFileNamesByPrefix(config_.cachedir_, _fileprefix, _fileext, filename_vec);
+
+        char logInfo2[1024] = {0};
+        snprintf(logInfo2, sizeof(logInfo2), "lzllog __GetNextFileIndex2, filename_vec.length:%zu\n", filename_vec.size());
+        XLoggerInfo info2 = XLOGGER_INFO_INITIALIZER;
+        info2.level = kLevelInfo;
+        ConsoleLog(&info2, logInfo2);
     }
 
     long index = 0;  // long is enought to hold all indexes in one day.
@@ -519,6 +538,13 @@ long XloggerAppender::__GetNextFileIndex(const std::string& _fileprefix, const s
             filesize += boost::filesystem::file_size(logfilepath);
         }
     }
+
+    char logInfo3[1024] = {0};
+    snprintf(logInfo3, sizeof(logInfo3), "lzllog __GetNextFileIndex3, index:%ld, filesize:%" PRIu64 ", max_file_size:%" PRIu64 "\n", index, filesize, max_file_size_);
+    XLoggerInfo info3 = XLOGGER_INFO_INITIALIZER;
+    info3.level = kLevelInfo;
+    ConsoleLog(&info3, logInfo3);
+
     return (filesize > max_file_size_) ? index + 1 : index;
 }
 
@@ -533,6 +559,13 @@ void XloggerAppender::__MakeLogFileName(const timeval& _tv,
     if (max_file_size_ > 0) {
         index = __GetNextFileIndex(logfilenameprefix, _fileext);
     }
+
+    char logInfo[1024] = {0};
+//    snprintf(logInfo, sizeof(logInfo), "lzllog __MakeLogFileName, max_file_size:%lu, max_alive_time:%ld, index:%ld, logfilenameprefix:%s", max_file_size_, max_alive_time_, index, logfilenameprefix.c_str());
+    snprintf(logInfo, sizeof(logInfo), "lzllog __MakeLogFileName, index:%ld, logfilenameprefix:%s", index, logfilenameprefix.c_str());
+    XLoggerInfo info = XLOGGER_INFO_INITIALIZER;
+    info.level = kLevelInfo;
+    ConsoleLog(&info, logInfo);
 
     std::string logfilepath = _logdir;
     logfilepath += "/";
@@ -1119,6 +1152,10 @@ void XloggerAppender::SetConsoleLog(bool _is_open) {
     consolelog_open_ = _is_open;
 }
 
+void XloggerAppender::SetFileNameMode(TFileNameMode _file_name_mode) {
+    file_name_mode = _file_name_mode;
+}
+
 void XloggerAppender::SetMaxFileSize(uint64_t _max_byte_size) {
     max_file_size_ = _max_byte_size;
 }
@@ -1264,6 +1301,7 @@ static XloggerAppender* sg_default_appender = nullptr;
 static bool sg_release_guard = true;
 static bool sg_default_console_log_open = false;
 static Mutex sg_mutex;
+static TFileNameMode sg_file_name_mode = kFileNameModeHour;
 static uint64_t sg_max_byte_size = 0;
 static long sg_max_alive_time = 0;
 void xlogger_appender(const XLoggerInfo* _info, const char* _log) {
@@ -1355,6 +1393,14 @@ void appender_set_console_log(bool _is_open) {
         return;
     }
     sg_default_appender->SetConsoleLog(_is_open);
+}
+
+void appender_set_file_name_mode(TFileNameMode _file_name_mode) {
+    sg_file_name_mode = _file_name_mode;
+    if (sg_release_guard) {
+        return;
+    }
+    sg_default_appender->SetFileNameMode(_file_name_mode);
 }
 
 void appender_set_max_file_size(uint64_t _max_byte_size) {

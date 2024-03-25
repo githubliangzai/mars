@@ -173,6 +173,16 @@ void SetConsoleLogOpen(uintptr_t _instance_ptr, bool _is_open) {
     }
 }
 
+void SetFileNameMode(uintptr_t _instance_ptr, TFileNameMode _file_name_mode) {
+    if (0 == _instance_ptr) {
+        appender_set_file_name_mode(_file_name_mode);
+    } else {
+        XloggerCategory* category = reinterpret_cast<XloggerCategory*>(_instance_ptr);
+        XloggerAppender* appender = reinterpret_cast<XloggerAppender*>(category->GetAppender());
+        return appender->SetFileNameMode(_file_name_mode);
+    }
+}
+
 void SetMaxFileSize(uintptr_t _instance_ptr, long _max_file_size) {
     if (0 == _instance_ptr) {
         appender_set_max_file_size(_max_file_size);

@@ -36,6 +36,7 @@ JNIEXPORT jlong JNICALL Java_com_tencent_mars_xlog_Xlog_newXlogInstance(JNIEnv* 
     jint level = JNU_GetField(env, _log_config, "level", "I").i;
     jint mode = JNU_GetField(env, _log_config, "mode", "I").i;
     jstring logdir = (jstring)JNU_GetField(env, _log_config, "logdir", "Ljava/lang/String;").l;
+    jint namemode = JNU_GetField(env, _log_config, "namemode", "I").i;
     jstring nameprefix = (jstring)JNU_GetField(env, _log_config, "nameprefix", "Ljava/lang/String;").l;
     jstring pubkey = (jstring)JNU_GetField(env, _log_config, "pubkey", "Ljava/lang/String;").l;
     jint compressmode = JNU_GetField(env, _log_config, "compressmode", "I").i;
@@ -69,6 +70,7 @@ JNIEXPORT jlong JNICALL Java_com_tencent_mars_xlog_Xlog_newXlogInstance(JNIEnv* 
 
     mars::xlog::XLogConfig config = {(mars::xlog::TAppenderMode)mode,
                                      logdir_str,
+                                     (mars::xlog::TFileNameMode)namemode,
                                      nameprefix_str,
                                      pubkey_str,
                                      (mars::xlog::TCompressMode)compressmode,
@@ -105,6 +107,7 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_xlog_Xlog_appenderOpen(JNIEnv* env,
     jint level = JNU_GetField(env, _log_config, "level", "I").i;
     jint mode = JNU_GetField(env, _log_config, "mode", "I").i;
     jstring logdir = (jstring)JNU_GetField(env, _log_config, "logdir", "Ljava/lang/String;").l;
+    jint namemode = JNU_GetField(env, _log_config, "namemode", "I").i;
     jstring nameprefix = (jstring)JNU_GetField(env, _log_config, "nameprefix", "Ljava/lang/String;").l;
     jstring pubkey = (jstring)JNU_GetField(env, _log_config, "pubkey", "Ljava/lang/String;").l;
     jint compressmode = JNU_GetField(env, _log_config, "compressmode", "I").i;
@@ -138,6 +141,7 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_xlog_Xlog_appenderOpen(JNIEnv* env,
 
     mars::xlog::XLogConfig config = {(mars::xlog::TAppenderMode)mode,
                                      logdir_str,
+                                     (mars::xlog::TFileNameMode)namemode,
                                      nameprefix_str,
                                      pubkey_str,
                                      (mars::xlog::TCompressMode)compressmode,
@@ -292,6 +296,13 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_xlog_Xlog_setConsoleLogOpen(JNIEnv*
                                                                          jlong _log_instance_ptr,
                                                                          jboolean _is_open) {
     mars::xlog::SetConsoleLogOpen(_log_instance_ptr, _is_open);
+}
+
+JNIEXPORT void JNICALL Java_com_tencent_mars_xlog_Xlog_setFileNameMode(JNIEnv* env,
+                                                                       jobject,
+                                                                       jlong _log_instance_ptr,
+                                                                       jint _fileNameMode) {
+    mars::xlog::SetFileNameMode(_log_instance_ptr, (mars::xlog::TFileNameMode)_fileNameMode);
 }
 
 JNIEXPORT void JNICALL Java_com_tencent_mars_xlog_Xlog_setMaxFileSize(JNIEnv* env,

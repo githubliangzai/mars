@@ -58,6 +58,8 @@ void FlushAll(bool _is_sync);
 
 void SetConsoleLogOpen(uintptr_t _instance_ptr, bool _is_open);
 
+void SetFileNameMode(uintptr_t _instance_ptr, TFileNameMode _file_name_mode);
+
 void SetMaxFileSize(uintptr_t _instance_ptr, long _max_file_size);
 
 void SetMaxAliveTime(uintptr_t _instance_ptr, long _alive_seconds);

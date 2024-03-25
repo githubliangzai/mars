@@ -60,6 +60,8 @@ public class Log {
 
         void setConsoleLogOpen(long logInstancePtr, boolean isOpen);
 
+        void setFileNameMode(long logInstancePtr, int fileNameMode);
+
         void setMaxFileSize(long logInstancePtr, long aliveSeconds);
 
         void setMaxAliveTime(long logInstancePtr, long aliveSeconds);
@@ -177,6 +179,10 @@ public class Log {
 
         }
 
+        @Override
+        public void setFileNameMode(long logInstancePtr, int fileNameMode) {
+
+        }
     };
 
     private static LogImp logImp = debugLog;

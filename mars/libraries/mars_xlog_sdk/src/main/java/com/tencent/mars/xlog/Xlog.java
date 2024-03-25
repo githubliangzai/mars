@@ -27,6 +27,9 @@ public class Xlog implements Log.LogImp {
 	public static final int ZLIB_MODE = 0;
 	public static final int ZSTD_MODE = 1;
 
+	public static final int NAME_MODE_HOUR = 0;
+	public static final int NAME_MODE_DAY = 1;
+
 	static class XLoggerInfo {
 		public int level;
 		public String tag;
@@ -42,6 +45,7 @@ public class Xlog implements Log.LogImp {
 		public int level = LEVEL_INFO;
 		public int mode = AppednerModeAsync;
 		public String logdir;
+		public int namemode = NAME_MODE_HOUR;
 		public String nameprefix;
 		public String pubkey = "";
 		public int compressmode = ZLIB_MODE;
@@ -50,23 +54,31 @@ public class Xlog implements Log.LogImp {
 		public int cachedays = 0;
 	}
 
-    public static void open(boolean isLoadLib, int level, int mode, String cacheDir, String logDir, String nameprefix, String pubkey) {
-		if (isLoadLib) {
-			System.loadLibrary("c++_shared");
-			System.loadLibrary("marsxlog");
-		}
+	public static void open(boolean isLoadLib, int level, int appendMode, String cacheDir, String logDir, String nameprefix, String pubkey) {
+		open(isLoadLib, level, appendMode, cacheDir, logDir, NAME_MODE_HOUR, nameprefix, pubkey);
+	}
 
+	public static void open(boolean isLoadLib, int level, int appendMode, String cacheDir, String logDir, int nameMode, String nameprefix, String pubkey) {
 		XLogConfig logConfig = new XLogConfig();
 		logConfig.level = level;
-		logConfig.mode = mode;
+		logConfig.mode = appendMode;
 		logConfig.logdir = logDir;
+		logConfig.namemode = nameMode;
 		logConfig.nameprefix = nameprefix;
 		logConfig.pubkey = pubkey;
 		logConfig.compressmode = ZLIB_MODE;
 		logConfig.compresslevel = 0;
 		logConfig.cachedir = cacheDir;
 		logConfig.cachedays = 0;
-		appenderOpen(logConfig);
+		open(isLoadLib, logConfig);
+	}
+
+	public static void open(boolean isLoadLib, XLogConfig config) {
+		if (isLoadLib) {
+			System.loadLibrary("c++_shared");
+			System.loadLibrary("marsxlog");
+		}
+		appenderOpen(config);
 	}
 
 	private static String decryptTag(String tag) {
@@ -174,4 +186,6 @@ public class Xlog implements Log.LogImp {
 	@Override
 	public native void setMaxAliveTime(long logInstancePtr, long aliveSeconds);
 
+	@Override
+	public native void setFileNameMode(long logInstancePtr, int fileNameMode);
 }

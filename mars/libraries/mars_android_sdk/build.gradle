@@ -7,10 +7,10 @@ version PROJ_VERSION
 artifactId = PROJ_ARTIFACTID
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion '30.0.2'
+    compileSdkVersion 33
+    buildToolsVersion '30.0.3'
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 29
         ndk {
             // TODO: changes this for your application if needed
@@ -41,7 +41,4 @@ android {
             proguardFile 'proguard-rules.pro'
         }
     }
-}
-
-
 }

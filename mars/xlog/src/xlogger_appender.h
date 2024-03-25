@@ -28,6 +28,7 @@ class XloggerAppender {
     bool GetCurrentLogPath(char* _log_path, unsigned int _len);
     bool GetCurrentLogCachePath(char* _logPath, unsigned int _len);
     void SetConsoleLog(bool _is_open);
+    void SetFileNameMode(TFileNameMode _file_name_mode);
     void SetMaxFileSize(uint64_t _max_byte_size);
     void SetMaxAliveDuration(long _max_time);
     bool GetfilepathFromTimespan(int _timespan, const char* _prefix, std::vector<std::string>& _filepath_vec);
@@ -87,6 +88,7 @@ class XloggerAppender {
 #endif
     bool log_close_ = true;
     comm::Condition cond_buffer_async_;
+    TFileNameMode file_name_mode = kFileNameModeHour;
     uint64_t max_file_size_ = 0;               // 0, will not split log file.
     long max_alive_time_ = 10 * 24 * 60 * 60;  // 10 days in second
 

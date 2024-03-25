@@ -49,9 +49,15 @@ enum TFileIOAction {
     kActionRemoveFailed = 7,
 };
 
+enum TFileNameMode {
+    kFileNameModeHour = 0, // 以小时命名
+    kFileNameModeDay = 1, // 以天命名
+};
+
 struct XLogConfig {
     TAppenderMode mode_ = kAppenderAsync;
     std::string logdir_;
+    TFileNameMode namemode_ = kFileNameModeHour;
     std::string nameprefix_;
     std::string pub_key_;
     TCompressMode compress_mode_ = kZlib;
@@ -83,6 +89,8 @@ void appender_set_console_log(bool _is_open);
 #ifdef __APPLE__
 void appender_set_console_fun(TConsoleFun _fun);
 #endif
+
+void appender_set_file_name_mode(TFileNameMode _file_name_mode);
 /*
  * By default, all logs will write to one file everyday. You can split logs to multi-file by changing max_file_size.
  *
